@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylecss.css">
+    <title>טלוויזיות אל-אמין</title>
+
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/8.6.7/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/8.6.7/firebase-auth.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-database.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-firestore.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-functions.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-messaging.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-storage.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-analytics.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-remote-config.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-performance.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <!-- firebase-ui-auth -->
+    <script src="https://www.gstatic.com/firebasejs/ui/4.8.0/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.0/firebase-ui-auth.css" />
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="import" href="firebase/auth">
+
+    <style media="screen">
+        table,
+        td {
+            border: 1px solid rgb(0, 0, 0);
+            color: rgb(54, 11, 153);
+            font-weight: bold;
+            margin-top: 50px;
+        }
+        
+        th {
+            border: 1px solid rgb(0, 0, 0);
+            color: rgb(142, 240, 30);
+        }
+        
+        .invalid-feedback {
+            color: rgb(255, 38, 38);
+            font-size: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container col-md-8 offset-md-2 mb-5 mt-3" style="padding: 0%;">
+
+        <div class="topnav">
+            <a id="home" href="/">דף הבית</a>
+            <a id="orders" style="display: none;" href="/orders.html">הזמנות</a>
+            <a id="products" href="/products.html">מוצרים</a>
+            <a id="logout" href="">יציאה</a>
+        </div>
+        <div style="margin-top: 10px;">
+            <h1 id="yourOrder" style="text-align: center;"></h1>
+        </div>
+        <div style="margin-top: 10px;">
+            <h5 id="o" style="text-align: center; "></h5>
+        </div>
+        <div id="order" style="margin-left: 100px;">
+            <table id="table"></table>
+        </div>
+        <div id="total">
+            <h5 id="t" style="text-align: center; "></h5>
+        </div>
+        <div id="d" style="margin-top: 50px; margin-left: 100px;">
+            <h3 id="det"></h3>
+            <form id="details">
+
+            </form>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+
+            const db = firebase.firestore();
+            var users = db.collection('users');
+            var userId = "";
+
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                    userId += `${user.uid}`;
+                    users.doc(user.uid).get().then((u) => {
+                        if (u.data().manager == true) {
+                            document.getElementById('orders').style.display = 'block';
+                        }
+                    });
+                }
+            });
+            let logoutBtn = document.getElementById('logout');
+
+            logoutBtn.addEventListener('click', function() {
+                // eslint-disable-next-line no-undef
+                firebase.auth().signOut()
+                    .then(function() {
+                        // Sign-out successful.
+                        location.href = '/';
+                    })
+                    .catch(function(error) {
+                        console.log(error); // An error happened
+                    });
+
+            });
+
+            db.collection('orders').get().then(function(querySnapshot) {
+                querySnapshot.forEach(function(odoc) {
+                    if (odoc.data().userid == userId) {
+                        if (odoc.data().complete == false) {
+                            document.getElementById('yourOrder').innerHTML = "הזמנתך";
+                            document.getElementById('o').innerHTML = "אם אתה רוצה לעדכן את ההזמנה שלך, חזור בבקשה לדף מוצרים ובחר את ההזמנה שאתה רוצה";
+                            document.getElementById('table').innerHTML += `
+                            <tr>
+                              <th>מוצר</th>
+                              <th>מחיר</th>
+                            </tr>`;
+                            for (let i = 0; i < odoc.data().products.length; i++) {
+                                document.getElementById('table').innerHTML += `<tr>
+                                <td> ${odoc.data().products[i]}</td><td style="color: rgb(0, 0, 0);"> ${odoc.data().prices[i]}</td> </tr>`;
+                            }
+                            var total = 0;
+                            for (let j = 0; j < odoc.data().prices.length; j++) {
+                                total += parseInt(odoc.data().prices[j].split('₪')[1]);
+                            }
+                            document.getElementById('table').innerHTML += `<tr>
+                                <td></td><td style="color: rgb(0, 0, 0); font-size: 30px;">₪${total}</td></tr>`;
+
+                            document.getElementById('det').innerHTML = `פרטי המזמין`;
+                            document.getElementById('details').innerHTML += `
+                            <div>
+                            <input id="name" placeholder=" שם מלא*" >
+                            </div>
+                            <div >
+                              <p id="invalidName" style="color: rgb(255, 38, 38); font-size: 20px;" >אורך השם 6-20 תווים</p>
+                              <p id="invalidName2" style="color: rgb(255, 38, 38); font-size: 20px;"></p>
+                            </div>
+                            <div>
+                            <input id="address" placeholder="כתובת*">
+                            </div>
+                            <div >
+                              <p id="invalidAddress" style="color: rgb(255, 38, 38); font-size: 20px;" >יישוב,רחוב ומספר הבית</p>
+                              <p id="invalidAddress2" style="color: rgb(255, 38, 38); font-size: 20px;"></p>
+                            </div>
+                            <div>
+                            <input  id="number" placeholder="טלפון סלולרי*">
+                            </div>
+                            <div >
+                              <p id="invalidNumber" style="color: rgb(255, 38, 38); font-size: 20px;" >10 ספרות</p>
+                              <p id="invalidNumber2" style="color: rgb(255, 38, 38); font-size: 20px;"></p>
+                            </div>
+                            <div>
+                            <input id="comments" placeholder="הוספת הערות לשליח">
+                            </div>
+                            <div>
+                            <button type="button" id="submit">שלח</button>
+                            </div>`
+
+                            let s = document.getElementById('submit');
+                            s.addEventListener('click', function(e) {
+                                var invalidName = false;
+                                var invalidAddress = false;
+                                var invalidNumber = false;
+                                if (document.getElementById('name').value == "") {
+                                    $('#invalidName').show();
+                                    $('#invalidName2').show();
+                                    document.getElementById('invalidName2').innerHTML = `שדה חובה`;
+                                    invalidName = true;
+                                }
+                                if (document.getElementById('name').value != "") {
+                                    if (!nameCheck(document.getElementById('name').value)) {
+                                        $('#invalidName').show();
+                                        $('#invalidName2').show();
+                                        document.getElementById('invalidName2').innerHTML = `שם לא תקין`;
+                                        invalidName = true;
+                                    }
+                                }
+                                if (invalidName == false) {
+                                    $('#invalidName').hide();
+                                    $('#invalidName2').hide();
+                                }
+
+                                if (document.getElementById('address').value == "") {
+                                    $('#invalidAddress').show();
+                                    $('#invalidAddress2').show();
+                                    document.getElementById('invalidAddress2').innerHTML = `שדה חובה`;
+                                    invalidAddress = true;
+                                }
+                                if (document.getElementById('address').value != "") {
+                                    if (!addressCheck(document.getElementById('address').value)) {
+                                        $('#invalidAddress').show();
+                                        $('#invalidAddress2').show();
+                                        document.getElementById('invalidAddress2').innerHTML = `כתובת לא תקינה`;
+                                        invalidAddress = true;
+                                    }
+                                }
+                                if (invalidAddress == false) {
+                                    $('#invalidAddress').hide();
+                                    $('#invalidAddress2').hide();
+                                }
+
+                                if (document.getElementById('number').value == "") {
+                                    $('#invalidNumber').show();
+                                    $('#invalidNumber2').show();
+                                    document.getElementById('invalidNumber2').innerHTML = `שדה חובה`;
+                                    invalidNumber = true;
+                                }
+                                if (document.getElementById('number').value != "") {
+                                    if (!telephoneCheck(document.getElementById('number').value)) {
+                                        $('#invalidNumber').show();
+                                        $('#invalidNumber2').show();
+                                        document.getElementById('invalidNumber2').innerHTML = `מספר טלפון לא תקין`;
+                                        invalidNumber = true;
+                                    }
+                                }
+                                if (invalidNumber == false) {
+                                    $('#invalidNumber').hide();
+                                    $('#invalidNumber2').hide();
+                                }
+
+                                if (!invalidName && !invalidAddress && !invalidNumber) {
+                                    db.collection("orders").doc(odoc.data().theOrderId).update({
+                                        complete: true,
+                                        orderStatus: 'טרם נקבע',
+                                        name: document.getElementById('name').value,
+                                        address: document.getElementById('address').value,
+                                        phoneNumber: document.getElementById('number').value,
+                                        comments: document.getElementById('comments').value
+
+                                    });
+                                    alert('תודה שבחרת בנו,אתה תקבל את ההזמנה תוך 14 ימי עסקים');
+                                    document.getElementById('d').style.display = 'none';
+                                }
+                            });
+                        }
+                    }
+                });
+            });
+
+            function nameCheck(name) {
+                var isName = /^(?=.{6,20}$)[א-ת ]+$/.test(name);
+                return isName;
+            }
+
+            function telephoneCheck(number) {
+                var isphone = /^05\d([-]{0,1})\d{7}$/.test(number);
+                return isphone;
+            }
+
+            function addressCheck(address) {
+                var isAddress = /^(?=.{6,20}$)[א-ת 0-9]+$/.test(address);
+                return isAddress;
+            }
+        });
+    </script>
+</body>
+
+</html>

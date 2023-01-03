@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylecss.css">
+    <title>טלוויזיות אל-אמין</title>
+
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/8.6.7/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/8.6.7/firebase-auth.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-database.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-firestore.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-functions.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-messaging.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-storage.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-analytics.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-remote-config.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-performance.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <!-- firebase-ui-auth -->
+    <script src="https://www.gstatic.com/firebasejs/ui/4.8.0/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.0/firebase-ui-auth.css" />
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="import" href="firebase/auth">
+
+    <style media="screen">
+
+    </style>
+</head>
+
+<body>
+    <div class="container col-md-8 offset-md-2 mb-5 mt-3" style="padding: 0%;">
+
+        <div class="topnav">
+            <a id="home" href="/">דף הבית</a>
+            <a id="orders" style="display: none;" href="/orders.html">הזמנות</a>
+            <a id="checkout" style="display: none;" href="/checkout.html">Checkout</a>
+            <a id="logout" href="">יציאה</a>
+        </div>
+        <div id="p1"></div>
+        <div id="p2"></div>
+        <div id="p3"></div>
+        <div id="p4"></div>
+        <div id="p5"></div>
+        <div id="p6"></div>
+        <div id="p7"></div>
+        <div id="p8"></div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+
+            const db = firebase.firestore();
+            var users = db.collection('users');
+            var userId = "";
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                    userId += `${user.uid}`;
+                    users.doc(user.uid).get().then((u) => {
+                        if (u.data().manager == true) {
+                            document.getElementById('orders').style.display = 'block';
+                        }
+                    });
+                }
+            });
+            let logoutBtn = document.getElementById('logout');
+
+            logoutBtn.addEventListener('click', function() {
+                // eslint-disable-next-line no-undef
+                firebase.auth().signOut()
+                    .then(function() {
+                        // Sign-out successful.
+                        location.href = '/';
+                    })
+                    .catch(function(error) {
+                        console.log(error); // An error happened
+                    });
+
+            });
+            let count = 0;
+            await db.collection("products").get().then(function(querySnapshot) {
+                querySnapshot.forEach(function(doc) {
+                    count++;
+                    document.getElementById('p' + `${count}`).innerHTML +=
+                        `<h3 id="title${count}">${doc.data().title}</h3>
+                     <img src="static-assets/${doc.data().num}.jfif">
+                     <p>${doc.data().description}</p> 
+                     <h2 id="price${count}">${doc.data().price}</h2> 
+                     <div>
+                        <button id="pl${count}" style="margin-right: 10px;"><img src="static-assets/plus.png" style="width: 50px;height: auto; width: 50px;height: auto;"></button>
+                        <span id="con${count}" style="display:inline-block;width:20px;height:25px;background:#ddd; text-align:center;border-radius:50%; margin-left:10px;">0</span>
+                        <button id="mi${count}"style="margin-left: 10px;"><img src="static-assets/minus.png" style="width: 50px;height: auto;width: 50px;height: auto;"></button>
+                        </div>
+                        <p>______________________________________________________________________________________________________________________________________________________</p>`
+                });
+            });
+            let orderCount = 0;
+            var orderId;
+            var Count1 = {
+                value: 0
+            };
+            var Count2 = {
+                value: 0
+            };
+            var Count3 = {
+                value: 0
+            };
+            var Count4 = {
+                value: 0
+            };
+            var Count5 = {
+                value: 0
+            };
+            var Count6 = {
+                value: 0
+            };
+            var Count7 = {
+                value: 0
+            };
+            var Count8 = {
+                value: 0
+            };
+
+            await checkExistingOrder();
+
+            document.getElementById('pl1').addEventListener('click', async function(e) {
+                await add('pl1', Count1, 'title1', 'price1', 'con1');
+                db.collection("orders").doc(orderId).update({
+                    Count1: Count1.value,
+                    orderCount: orderCount
+                });
+            });
+
+            document.getElementById('pl2').addEventListener('click', async function(e) {
+                await add('pl2', Count2, 'title2', 'price2', 'con2');
+                db.collection("orders").doc(orderId).update({
+                    Count2: Count2.value,
+                    orderCount: orderCount
+                });
+            });
+
+            document.getElementById('pl3').addEventListener('click', async function(e) {
+                await add('pl3', Count3, 'title3', 'price3', 'con3');
+                db.collection("orders").doc(orderId).update({
+                    Count3: Count3.value,
+                    orderCount: orderCount
+                });
+            });
+
+            document.getElementById('pl4').addEventListener('click', async function(e) {
+                await add('pl4', Count4, 'title4', 'price4', 'con4');
+                db.collection("orders").doc(orderId).update({
+                    Count4: Count4.value,
+                    orderCount: orderCount
+                });
+            });
+
+            document.getElementById('pl5').addEventListener('click', async function(e) {
+                await add('pl5', Count5, 'title5', 'price5', 'con5');
+                db.collection("orders").doc(orderId).update({
+                    Count5: Count5.value,
+                    orderCount: orderCount
+                });
+            });
+
+            document.getElementById('pl6').addEventListener('click', async function(e) {
+                await add('pl6', Count6, 'title6', 'price6', 'con6');
+                db.collection("orders").doc(orderId).update({
+                    Count6: Count6.value,
+                    orderCount: orderCount
+                });
+            });
+
+            document.getElementById('pl7').addEventListener('click', async function(e) {
+                await add('pl7', Count7, 'title7', 'price7', 'con7');
+                db.collection("orders").doc(orderId).update({
+                    Count7: Count7.value,
+                    orderCount: orderCount
+                });
+            });
+
+            document.getElementById('pl8').addEventListener('click', async function(e) {
+                await add('pl8', Count8, 'title8', 'price8', 'con8');
+                db.collection("orders").doc(orderId).update({
+                    Count8: Count8.value,
+                    orderCount: orderCount
+                });
+            });
+
+            document.getElementById('mi1').addEventListener('click', async function(e) {
+                await sub('mi1', Count1, 'title1', 'price1', 'con1');
+                if (orderCount > 0) {
+                    db.collection("orders").doc(orderId).update({
+                        Count1: Count1.value,
+                        orderCount: orderCount
+                    });
+                }
+            });
+
+            document.getElementById('mi2').addEventListener('click', async function(e) {
+                await sub('mi2', Count2, 'title2', 'price2', 'con2');
+                if (orderCount > 0) {
+                    db.collection("orders").doc(orderId).update({
+                        Count2: Count2.value,
+                        orderCount: orderCount
+                    });
+                }
+            });
+
+            document.getElementById('mi3').addEventListener('click', async function(e) {
+                await sub('mi3', Count3, 'title3', 'price3', 'con3');
+                if (orderCount > 0) {
+                    db.collection("orders").doc(orderId).update({
+                        Count3: Count3.value,
+                        orderCount: orderCount
+                    });
+                }
+            });
+
+            document.getElementById('mi4').addEventListener('click', async function(e) {
+                await sub('mi4', Count4, 'title4', 'price4', 'con4');
+                if (orderCount > 0) {
+                    db.collection("orders").doc(orderId).update({
+                        Count4: Count4.value,
+                        orderCount: orderCount
+                    });
+                }
+            });
+
+            document.getElementById('mi5').addEventListener('click', async function(e) {
+                await sub('mi5', Count5, 'title5', 'price5', 'con5');
+                if (orderCount > 0) {
+                    db.collection("orders").doc(orderId).update({
+                        Count5: Count5.value,
+                        orderCount: orderCount
+                    });
+                }
+            });
+
+            document.getElementById('mi6').addEventListener('click', async function(e) {
+                await sub('mi6', Count6, 'title6', 'price6', 'con6');
+                if (orderCount > 0) {
+                    db.collection("orders").doc(orderId).update({
+                        Count6: Count6.value,
+                        orderCount: orderCount
+                    });
+                }
+            });
+
+            document.getElementById('mi7').addEventListener('click', async function(e) {
+                await sub('mi7', Count7, 'title7', 'price7', 'con7');
+                if (orderCount > 0) {
+                    db.collection("orders").doc(orderId).update({
+                        Count7: Count7.value,
+                        orderCount: orderCount
+                    });
+                }
+            });
+
+            document.getElementById('mi8').addEventListener('click', async function(e) {
+                await sub('mi8', Count8, 'title8', 'price8', 'con8');
+                if (orderCount > 0) {
+                    db.collection("orders").doc(orderId).update({
+                        Count8: Count8.value,
+                        orderCount: orderCount
+                    });
+                }
+            });
+
+            async function add(pl, Count, title, price, con) {
+                document.getElementById(`${pl}`).disabled = true;
+                orderCount++;
+                Count.value++;
+                if (orderCount == 1) {
+                    document.getElementById('checkout').style.display = 'block';
+                    await db.collection('orders').add({
+                        products: [document.getElementById(`${title}`).innerHTML],
+                        prices: [document.getElementById(`${price}`).innerHTML],
+                        userid: userId,
+                        Count1: 0,
+                        Count2: 0,
+                        Count3: 0,
+                        Count4: 0,
+                        Count5: 0,
+                        Count6: 0,
+                        Count7: 0,
+                        Count8: 0,
+                        complete: false,
+                        comments: ''
+                    }).then(await
+                        function(docRef) {
+                            orderId = docRef.id;
+                        });
+                    await db.collection("orders").doc(orderId).update({
+                        theOrderId: orderId
+                    });
+                } else {
+
+                    const pro = await db.collection("orders").doc(orderId).get().then(doc => {
+                        return doc.data().products;
+                    });
+                    const pri = await db.collection("orders").doc(orderId).get().then(doc => {
+                        return doc.data().prices;
+                    });
+                    pro.push(document.getElementById(`${title}`).innerHTML);
+                    pri.push(document.getElementById(`${price}`).innerHTML);
+                    await db.collection("orders").doc(orderId).update({
+                        products: pro,
+                        prices: pri
+                    });
+                }
+                document.getElementById(`${con}`).textContent = `${Count.value}`;
+                setTimeout(function() {
+                    document.getElementById(`${pl}`).disabled = false;
+                }, 1000);
+            }
+
+            async function sub(mi, Count, title, price, con) {
+                document.getElementById(`${mi}`).disabled = true;
+                if (Count.value > 0) {
+                    orderCount--;
+                    Count.value--;
+                    document.getElementById(`${con}`).textContent = `${Count.value}`;
+                    if (orderCount == 0) {
+                        document.getElementById('checkout').style.display = 'none';
+                        await db.collection("orders").doc(orderId).delete();
+                        document.getElementById(`${mi}`).disabled = false;
+                        return;
+                    }
+                    const pro = await db.collection("orders").doc(orderId).get().then(doc => {
+                        return doc.data().products;
+                    });
+                    const pri = await db.collection("orders").doc(orderId).get().then(doc => {
+                        return doc.data().prices;
+                    });
+                    const index1 = await pro.indexOf(document.getElementById(`${title}`).innerHTML);
+                    const index2 = await pri.indexOf(document.getElementById(`${price}`).innerHTML);
+                    pro.splice(index1, 1);
+                    pri.splice(index2, 1);
+                    db.collection("orders").doc(orderId).update({
+                        products: pro,
+                        prices: pri
+                    });
+                }
+                setTimeout(function() {
+                    document.getElementById(`${mi}`).disabled = false;
+                }, 1000);
+            }
+
+            async function checkExistingOrder() {
+                await db.collection('orders').get().then(function(querySnapshot) {
+                    querySnapshot.forEach(function(odoc) {
+                        if (odoc.data().userid == userId) {
+                            if (odoc.data().complete == false) {
+                                orderCount = odoc.data().orderCount;
+                                if (orderCount > 0) {
+                                    document.getElementById('checkout').style.display = 'block';
+                                }
+                                orderId = odoc.data().theOrderId;
+                                Count1.value = odoc.data().Count1;
+                                document.getElementById(`con1`).textContent = `${Count1.value}`;
+                                Count2.value = odoc.data().Count2;
+                                document.getElementById(`con2`).textContent = `${Count2.value}`;
+                                Count3.value = odoc.data().Count3;
+                                document.getElementById(`con3`).textContent = `${Count3.value}`;
+                                Count4.value = odoc.data().Count4;
+                                document.getElementById(`con4`).textContent = `${Count4.value}`;
+                                Count5.value = odoc.data().Count5;
+                                document.getElementById(`con5`).textContent = `${Count5.value}`;
+                                Count6.value = odoc.data().Count6;
+                                document.getElementById(`con6`).textContent = `${Count6.value}`;
+                                Count7.value = odoc.data().Count7;
+                                document.getElementById(`con7`).textContent = `${Count7.value}`;
+                                Count8.value = odoc.data().Count8;
+                                document.getElementById(`con8`).textContent = `${Count8.value}`;
+                            }
+                        }
+                    })
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

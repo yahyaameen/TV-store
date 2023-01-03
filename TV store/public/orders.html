@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylecss.css">
+    <title>טלוויזיות אל-אמין</title>
+
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/8.6.7/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/8.6.7/firebase-auth.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-database.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-firestore.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-functions.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-messaging.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-storage.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-analytics.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-remote-config.js"></script>
+    <script defer src="/__/firebase/8.6.7/firebase-performance.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <!-- firebase-ui-auth -->
+    <script src="https://www.gstatic.com/firebasejs/ui/4.8.0/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.0/firebase-ui-auth.css" />
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="import" href="firebase/auth">
+
+    <style media="screen">
+
+    </style>
+</head>
+
+<body>
+    <div class="container col-md-8 offset-md-2 mb-5 mt-3" style="padding: 0%;">
+
+        <div class="topnav">
+            <a id="home" href="/">דף הבית</a>
+            <a id="products" href="/products.html">מוצרים</a>
+            <a id="logout" href="">יציאה</a>
+        </div>
+        <div id="all" style="margin-top: 40px; text-align: right; "></div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+
+            const db = firebase.firestore();
+            let logoutBtn = document.getElementById('logout');
+
+            logoutBtn.addEventListener('click', function() {
+                // eslint-disable-next-line no-undef
+                firebase.auth().signOut()
+                    .then(function() {
+                        // Sign-out successful.
+                        location.href = '/';
+                    })
+                    .catch(function(error) {
+                        console.log(error); // An error happened
+                    });
+
+            });
+
+            var orderNum = 0;
+            db.collection('orders').get().then(function(querySnapshot) {
+                querySnapshot.forEach(async function(odoc) {
+                    if (odoc.data().complete == true) {
+                        orderNum++;
+                        var order = document.createElement("div");
+                        order.setAttribute("id", orderNum);
+                        order.innerHTML = `<div><h5>שם המזמין: ${odoc.data().name}</h5></div>
+                            <div> <h5>כתובת: ${odoc.data().address}</h5></div>
+                            <div> <h5>טלפון: ${odoc.data().phoneNumber}</h5></div>`;
+
+
+                        if (odoc.data().comments != '') {
+                            order.innerHTML += `<div> <h5>הערות נוספות לשליח: ${odoc.data().comments}</h5></div>`
+                        }
+                        order.innerHTML += `<div> <h5>מצב ההזמנה: ${odoc.data().orderStatus}</h5></div>`
+
+                        if (odoc.data().Count1 > 0) {
+                            await productInOrder("Count1", odoc, order);
+                            order.innerHTML += `<div><h5>כמות: ${odoc.data().Count1}</h5></div>`;
+                        }
+
+                        if (odoc.data().Count2 > 0) {
+                            await productInOrder("Count2", odoc, order);
+                            order.innerHTML += `<div><h5>כמות: ${odoc.data().Count2}</h5></div>`;
+                        }
+
+                        if (odoc.data().Count3 > 0) {
+                            await productInOrder("Count3", odoc, order);
+                            order.innerHTML += `<div><h5>כמות: ${odoc.data().Count3}</h5></div>`;
+                        }
+
+                        if (odoc.data().Count4 > 0) {
+                            await productInOrder("Count4", odoc, order);
+                            order.innerHTML += `<div><h5>כמות: ${odoc.data().Count4}</h5></div>`;
+                        }
+
+                        if (odoc.data().Count5 > 0) {
+                            await productInOrder("Count5", odoc, order);
+                            order.innerHTML += `<div><h5>כמות: ${odoc.data().Count5}</h5></div>`;
+                        }
+
+                        if (odoc.data().Count6 > 0) {
+                            await productInOrder("Count6", odoc, order);
+                            order.innerHTML += `<div><h5>כמות: ${odoc.data().Count6}</h5></div>`;
+                        }
+
+                        if (odoc.data().Count7 > 0) {
+                            await productInOrder("Count7", odoc, order);
+                            order.innerHTML += `<div><h5>כמות: ${odoc.data().Count7}</h5></div>`;
+                        }
+
+                        if (odoc.data().Count8 > 0) {
+                            await productInOrder("Count8", odoc, order);
+                            order.innerHTML += `<div><h5>כמות: ${odoc.data().Count8}</h5></div>`;
+                        }
+
+                        if (odoc.data().orderStatus == "טרם נקבע" || odoc.data().orderStatus == "הזמנה לא תקינה, פרטים אישיים של המזמין אינם תקינים") {
+                            order.innerHTML += `<div><form >
+					                <p>
+					                 <div><h5>:מצב ההזמנה</h5></div>
+					                <input type="radio" id="invalid" name="role" value="invalid">
+					                <label for="invalid"><h6>הזמנה לא תקינה, פרטים אישיים של המזמין אינם תקינים</h6></label><br>
+					                <input type="radio" id="valid" name="role" value="valid">
+					                <label for="valid"><h6>הזמנה תקינה והיא בטיפול</h6></label><br>
+                                    <input type="radio" id="sent" name="role" value="sent">
+					                <label for="sent"><h6>הזמנה נשלחה</h6></label><br>
+					                <button id="button-init" class="btn btn-primary" orderNum=${odoc.data().theOrderId} >אישור</button>
+					               </p>
+				                </form></div>`;
+
+                        }
+
+                        if (odoc.data().orderStatus == "הזמנה תקינה והיא בטיפול") {
+                            order.innerHTML += `<div><form >
+					                <p>
+					                 <div><h5>:מצב ההזמנה</h5></div>
+					                <input type="radio" id="valid" name="role" value="valid">
+					                <label for="valid"><h6>הזמנה תקינה והיא בטיפול</h6></label><br>
+                                    <input type="radio" id="sent" name="role" value="sent">
+					                <label for="sent"><h6>הזמנה נשלחה</h6></label><br>
+					                <button id="button-init" class="btn btn-primary" orderNum=${odoc.data().theOrderId}>אישור</button>
+					               </p>
+				                </form></div>`;
+
+                        }
+                        order.innerHTML += `<div><p>_____________________________________________________________________________________________________________________________________________________________</p></div>`
+                        document.getElementById('all').appendChild(order);
+                    }
+                });
+            });
+
+            async function productInOrder(count, odoc, order) {
+                await db.collection('products').get().then(function(querySnapshot) {
+                    querySnapshot.forEach(function(pdoc) {
+                        if (pdoc.data().count == count) {
+                            order.innerHTML += `<div><h5> ${pdoc.data().title} :מוצר</h5></div>`;
+                            return;
+                        }
+                    })
+                });
+            }
+
+            jQuery(document).on("click", "#button-init", function(button) {
+                button.preventDefault();
+
+
+                var orderId = button.target.getAttribute("ordernum");
+                var parent = button.target.parentElement;
+                var inputs = parent.querySelectorAll("input");
+                [].forEach.call(inputs, async function(input) {
+                    if (input.checked) {
+                        var value = input.getAttribute("value");
+                        var status = document.querySelector("[for=" + value + "] h6").innerText;
+                        await db.collection("orders").doc(orderId).update({
+                            orderStatus: status
+                        });
+                        if (status == "הזמנה לא תקינה, פרטים אישיים של המזמין אינם תקינים")
+                            alert("נשלח מייל ללקוח לעדכן פרטיים אישיים בקשר להזמנה " + `${orderId}`);
+                        if (status == "הזמנה תקינה והיא בטיפול")
+                            alert("הזמנה" + " " + `${orderId}` + " " + "בטיפול ");
+                        if (status == "הזמנה נשלחה")
+                            alert("הזמנה" + " " + `${orderId}` + " " + "נשלחה ללקוח");
+                        location.reload();
+                    }
+                })
+
+            })
+        });
+    </script>
+</body>
+
+</html>
